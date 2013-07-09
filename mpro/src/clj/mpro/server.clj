@@ -2,7 +2,8 @@
   (:require [ring.adapter.jetty :as jetty]
             [ring.middleware.resource :as resources]
             [ring.util.response :as response])
-  (:use [hiccup.core] [hiccup.def])
+  (:use [hiccup.core] [hiccup.def]
+        [mpro.helper-macros])
   (:gen-class))
 
 (def stylesheets-listing
@@ -25,12 +26,9 @@
 
 (defn comp-head [scripts sheets]
   "Scripts and sheets as keywords. They will be included in order received. "
-  (apply vector
-         (concat
-          [:head]
-          (for [script (get-scripts scripts)] [:script {:src script}])
-          (for [sheet (get-stylesheets sheets)]
-            [:link {:rel "stylesheet" :href sheet}]))))
+  (hiccup-for :head
+              :for [[script (get-scripts scripts)] [:script {:src script}]]
+              :for [[sheet (get-stylesheets sheets)] [:link {:rel "stylesheet" :href sheet}]]))
 
 (def current-client-list-dev
   ["Julie Tchiled"
@@ -70,6 +68,18 @@
                          :data-toggle "tab"}
                      (current-client :full-name)]]))))
 
+(defn comp-client-menu []
+  (hiccup-for [:ul {:class "nav nav-list nav-stacked"}
+               [:li {:id "page_selector_noclient"}
+                [:a {:href "#noclient" :data-toggle "tab"} "Home"]]
+               [:li {:class "nav-header"} "Current Clients"]
+               :for$
+               [[current-client (current-clients)]
+                [:li {:id (str "pane_selector_client" (current-client :id))}
+                 [:a {:href (str "#client" (current-client :id))
+                      :data-toggle "tab"}
+                  (current-client :full-name)]]]]))
+
 (defn client-menu [active-client]
   (cond
    (= active-client :none) ()))
@@ -90,29 +100,27 @@
             [:div {:id "clientlist"}
              (client-menu :none)]]
            [:div {:class "span8"}
-            (apply
-             vector
-             (concat
-              [:div {:class "tab-content"}]
-              (for [[id client] (current-clients)]
-                [:div {:class "tab-pane" :id (str "client" id)}
-                  [:h3 client]
-                 [:ul {:class "nav nav-tabs"}
-                  [:li {:class "active"}
-                   [:a {:href (str "#cprofile" id) :data-toggle "tab"}
-                    "Client Profile"]]
-                  [:li [:a {:href (str "#notes" id) :data-toggle "tab"}
-                        "Notes"]]
-                  [:li [:a {:href (str "#worksheet" id) :data-toggle "tab"}
-                        "Worksheet"]]]
-                 [:div {:class "tab-content"}
-                  [:div {:class "tab-pane active" :id (str "cprofile" id)}
-                   "Flagon Land. "]
-                  [:div {:class "tab-pane" :id (str "notes" id)}
-                   "Dragon Land."]
-                  [:div {:class "tab-pane" :id (str "worksheet" id)}
-                   "Wagon Land."]]])))]]]]]
-  [:html head body]))
+            (hiccup-for
+             [:div {:class "tab-content"}
+             :for$ [[[id client] (current-clients)]
+                    [:div {:class "tab-pane" :id (str "client" id)}
+                     [:h3 client]
+                     [:ul {:class "nav nav-tabs"}
+                      [:li {:class "active"}
+                       [:a {:href (str "#cprofile" id) :data-toggle "tab"}
+                        "Client Profile"]]
+                      [:li [:a {:href (str "#notes" id) :data-toggle "tab"}
+                            "Notes"]]
+                      [:li [:a {:href (str "#worksheet" id) :data-toggle "tab"}
+                            "Worksheet"]]]
+                     [:div {:class "tab-content"}
+                      [:div {:class "tab-pane active" :id (str "cprofile" id)}
+                       "Flagon Land. "]
+                      [:div {:class "tab-pane" :id (str "notes" id)}
+                       "Dragon Land."]
+                      [:div {:class "tab-pane" :id (str "worksheet" id)}
+                       "Wagon Land."]]]]])]]]]]
+    [:html head body]))
 
 (defn render-home []
   {:status 400
