@@ -75,9 +75,6 @@
    (= active-client :none) ()))
 
 
-
-)))
-
 ;;consider making default values for these args, not sure of the
 ;;syntax right now
 (defn comp-home [active-client active-tab page-title motd]
@@ -120,7 +117,7 @@
 (defn render-home []
   {:status 400
    :headers {"Content-Type" "text/html"}
-   :body (html (comp-home :none :none "Initial Testing" "I haz bo0ostrap!")})
+   :body (html (comp-home :none :none "Initial Testing" "I haz bo0ostrap!"))})
 
 (defn render-app []
   (render-home))
