@@ -26,9 +26,9 @@
 
 (defn comp-head [scripts sheets]
   "Scripts and sheets as keywords. They will be included in order received. "
-  (hiccup-for :head
-              :for [[script (get-scripts scripts)] [:script {:src script}]]
-              :for [[sheet (get-stylesheets sheets)] [:link {:rel "stylesheet" :href sheet}]]))
+  (hiccup-for [:head
+               :for$ [[script (get-scripts scripts)] [:script {:src script}]]
+               :for$ [[sheet (get-stylesheets sheets)] [:link {:rel "stylesheet" :href sheet}]]]))
 
 (def current-client-list-dev
   ["Julie Tchiled"
@@ -52,7 +52,7 @@
    "Morton Williams"])
 
 (defn current-clients []
-  (map #(identity {:id (first %) :full-name (second %)}) (map-indexed vector current-client-list-dev)))
+  (map-indexed #(identity {:id %1 :full-name %2}) current-client-list-dev))
 
 
 
@@ -82,13 +82,13 @@
 
 (defn client-menu [active-client]
   (cond
-   (= active-client :none) ()))
+   (= active-client :none) (comp-client-menu)))
 
 
 ;;consider making default values for these args, not sure of the
 ;;syntax right now
 (defn comp-home [active-client active-tab page-title motd]
-  (let [head (comp-head [:bootstrap :home] [:bootstrap :primary])
+  (let [head (comp-head [:home :bootstrap] [:primary :bootstrap])
         body
         [:body
          [:div {:class "container-fluid"}
@@ -102,9 +102,11 @@
            [:div {:class "span8"}
             (hiccup-for
              [:div {:class "tab-content"}
-             :for$ [[[id client] (current-clients)]
+              :for$ [[client (current-clients)
+                      :let [id (client :id)]
+                      :let [full-name (client :full-name)]]
                     [:div {:class "tab-pane" :id (str "client" id)}
-                     [:h3 client]
+                     [:h3 full-name]
                      [:ul {:class "nav nav-tabs"}
                       [:li {:class "active"}
                        [:a {:href (str "#cprofile" id) :data-toggle "tab"}
