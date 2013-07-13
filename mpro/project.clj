@@ -4,7 +4,7 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/java.jdbc "0.3.0-alpha4"]
                  [mysql/mysql-connector-java "5.1.6"]
-                 [korma "0.3.0-RC5"]
+                 [korma "0.3.0-RC5-apply-transform-patch-robbie"]
                  [ring "1.1.8"]
                  [jayq "2.4.0"]
                  [endophile "0.1.0"]
