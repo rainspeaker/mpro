@@ -1,7 +1,9 @@
 (ns mpro.server
   (:require [ring.adapter.jetty :as jetty]
             [ring.middleware.resource :as resources]
-            [ring.util.response :as response])
+            [ring.util.response :as response]
+            [korma.core :as korma]
+            [mpro.dbclient :as dbclient])
   (:use [hiccup.core] [hiccup.def]
         [mpro.helper-macros])
   (:gen-class))
@@ -88,7 +90,8 @@
 ;;consider making default values for these args, not sure of the
 ;;syntax right now
 (defn comp-home [active-client active-tab page-title motd]
-  (let [head (comp-head [:home :bootstrap] [:primary :bootstrap])
+  (let [n (korma/select dbclient/client (korma/with dbclient/technology))
+        head (comp-head [:home :bootstrap] [:primary :bootstrap])
         body
         [:body
          [:div {:class "container-fluid"}
