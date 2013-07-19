@@ -4,3 +4,12 @@ overflow: auto;
 height: 76%;
 }
 
+.split-form.split-form-left
+{
+margin-left: 0%;
+}
+
+textarea
+{
+font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

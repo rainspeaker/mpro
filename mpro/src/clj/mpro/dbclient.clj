@@ -2,13 +2,14 @@
   (:require [mpro.dbconfig :as d]
             [clojure.java.jdbc :as j]
             [clojure.java.jdbc.sql :as s]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clj-time.coerce :as time-coerce])
   (:use [korma.core]
         [mpro.helpers]))
 
 (declare account
          client
-         client-name
+         name
          demographic
          address
          email
@@ -30,7 +31,7 @@
          workbook-section)
 
 (defn prepr-by-fn [qry k f err]
-  (if  (not= nil (qry k))
+  (if  (contains? qry k)
     (if-let [matchup (f (qry k))]
       (assoc qry k matchup)
       (do
@@ -39,7 +40,7 @@
     qry))
 
 (defn transfm-by-fn [res k f]
-  (if (not= nil (res k))
+  (if (contains? res k)
     (assoc res k (f (res k)))
     res))
 
@@ -57,20 +58,20 @@
   (database d/db)
   (entity-fields :id :status :ispaid)
   (belongs-to account)
-  (has-one client-name)
-  (has-one demographic)
+  (has-many name)
+  (has-many demographic)
   (has-many address)
   (has-many email)
   (has-many phone)
   (has-many what-brings)
-  (has-one billing-info)
+  (has-many billing-info)
   (has-many billing-notes)
   (many-to-many technology :client_technology)
   (has-many complaint)
-  (has-one family-history)
-  (has-one health-notes)
-  (has-one perpetual-personal-notes)
-  (has-one perpetual-professional-notes)
+  (has-many family-history)
+  (has-many health-notes)
+  (has-many perpetual-personal-notes)
+  (has-many perpetual-professional-notes)
   (has-many session-notes)
   ;; (has-many body-drawing)
   (has-many session)
@@ -78,46 +79,43 @@
   (has-many workbook)
 
   (prepare (fn [stuff]
-             (do 
-                 (let [stuff (prepr-by-fn
-                           stuff :status
-                           {:current "current"
-                            :dormant "dormant"
-                            :former "former"}
-                           "Tried to add client status other than :current/:dormant/:former")
-                    stuff (prepr-by-fn
-                           stuff :ispaid
-                           {true "true" false "false"}
-                           "Tried to add client ispaid other than bool")]
-                stuff))))
+             (let [stuff (prepr-by-fn
+                          stuff :status
+                          {:current "current"
+                           :dormant "dormant"
+                           :former "former"}
+                          "Tried to add client status other than :current/:dormant/:former")
+                   stuff (prepr-by-fn
+                          stuff :ispaid
+                          {true "true" false "false"}
+                          "Tried to add client ispaid other than bool")]
+               stuff)))
   (transform (fn [stuff]
-               (do 
-                 (let [stuff (transfm-by-fn
-                              stuff :status
-                              {"current" :current
-                               "dormant" :dormant
-                               "former" :former}) 
-                       stuff (transfm-by-fn
-                              stuff :ispaid
-                              {"true" true "false" false})]
-                   stuff)))))
+               (let [stuff (transfm-by-fn
+                            stuff :status
+                            {"current" :current
+                             "dormant" :dormant
+                             "former" :former}) 
+                     stuff (transfm-by-fn
+                            stuff :ispaid
+                            {"true" true "false" false})]
+                 stuff))))
 
-(defentity client-name
+(defentity name
   (database d/db)
-  (entity-fields :first-name
-                 :middle-name
-                 :last-name
+  (entity-fields :first
+                 :middle
+                 :last
                  :honorific
                  :post-fix
-                 :preferred-name
-                 :client_id)
+                 :preferred)
   (belongs-to client)
   (prepare (fn [qry]
              (reduce #(prepr-by-fn %1 %2 str/trim)
                      qry
-                     [:first-name :middle-name
-                      :last-name :honorific
-                      :post-fix]))))
+                     [:first :middle
+                      :last :honorific
+                      :post-fix :preferred]))))
 
 (def demographic-enums-prep
   {:gender {:male "male"
@@ -142,8 +140,7 @@
                  :sex
                  :ethnicity
                  :profession
-                 :age-group
-                 :client_id)
+                 :age-group)
   (belongs-to client)
   (prepare (fn [qry]
              (-> qry
@@ -160,32 +157,38 @@
                   (demographic-enums-prep :age-group)                  
                   "Tried to put an age-group other than :child/:teenager/:adult/:senior"))))
   (transform (fn [res]
-               (-> res
-                   (transfm-by-fn
-                    :gender
-                    (demographic-enums-tran :gender))
-                   (transfm-by-fn
-                    :sex
-                    (demographic-enums-tran :sex))
-                   (transfm-by-fn
-                    :age-group
-                    (demographic-enums-tran :age-group))))))
+               (do (-> res
+                    (transfm-by-fn
+                     :gender
+                     (demographic-enums-tran :gender))
+                    (transfm-by-fn
+                     :sex
+                     (demographic-enums-tran :sex))
+                    (transfm-by-fn
+                     :age-group
+                     (demographic-enums-tran :age-group))
+                    (transfm-by-fn
+                     :birthdate
+                     time-coerce/from-sql-date))
+                   ))))
 
 (defentity billing-info
   (database d/db)
-  (entity-fields :preferred-method
-                 :numbers)
+  (entity-fields :preferred-billing-method
+                 :billing-numbers)
   (belongs-to client))
 
 (defentity billing-notes
   (database d/db)
-  (entity-fields :note :active)
+  (entity-fields :note :active :billing-note-date)
   (belongs-to client)
   (prepare (fn [qry]
              (prepr-by-fn qry :active bool-enums-prep
                           "Tried to put a non-bool into a billing-notes :active slot")))
   (transform (fn [res]
-               (transfm-by-fn res :active bool-enums-tran))))
+               (-> res
+                   (transfm-by-fn :active bool-enums-tran)
+                   (transfm-by-fn :billing-note-date time-coerce/from-sql-date)))))
 
 (defentity address
   (database d/db)
@@ -209,13 +212,22 @@
 
 (defentity complaint
   (database d/db)
-  (entity-fields :date :complaint)
-  (belongs-to client))
+  (entity-fields :date :complaint :complaint-date)
+  (belongs-to client)
+  (transform (fn [res]
+               (-> res
+                   (transfm-by-fn :complaint-date time-coerce/from-sql-date)))))
 
 (defentity what-brings
   (database d/db)
   (entity-fields :reason :date)
-  (belongs-to client))
+  (belongs-to client)
+  (transform (fn [res]
+               (do (-> res
+                    (transfm-by-fn
+                     :date
+                     time-coerce/from-sql-date))
+                   ))))
 
 (defentity technology
   (database d/db)
@@ -230,27 +242,35 @@
 
 (defentity health-notes
   (database d/db)
-  (entity-fields :notes)
-  (belongs-to client))
+  (entity-fields :health-notes)
+  (belongs-to client)
+  (transform (fn [res]
+               res)))
 
 (defentity perpetual-personal-notes
   (database d/db)
-  (entity-fields :notes)
+  (entity-fields :perpetual-personal-notes)
   (belongs-to client))
 
 (defentity perpetual-professional-notes
   (database d/db)
-  (entity-fields :notes)
+  (entity-fields :perpetual-professional-notes)
   (belongs-to client))
 
 (defentity session
   (database d/db)
   (entity-fields :date :summary)
-  (belongs-to client))
+  (belongs-to client)
+  (has-one session-notes)
+  (transform (fn [res]
+               (-> res
+                   (transfm-by-fn
+                    :date
+                    time-coerce/from-sql-date)))))
 
 (defentity session-notes
   (database d/db)
-  (entity-fields :notes)
+  (entity-fields :session-notes)
   (belongs-to client)
   (belongs-to session))
 
