@@ -1,7 +1,8 @@
 (ns mpro.comp
   (:require [clojure.string :as string]
             [mpro.clients :as clt]
-            [clj-time.format :as tformat])
+            [clj-time.format :as tformat]
+            )
   (:use [mpro.helpers]
         [mpro.helper-macros]))
 
@@ -89,6 +90,9 @@
               attribs
               (dissoc attribs :value))]))
 
+(defn make-generic-inputs [params]
+  :input params)
+
 (defn make-text-inputs [params]
   (->> params
        (map #(cons (assoc (first %) :type "text") rest %))
@@ -175,10 +179,11 @@
                   :placeholder "Client's chief complaint"}
        (-> client :complaint first :complaint)]]
      {}
-     [(str "Last modified on "
+     [(str "Last modified on CLJ-TIME N/AVAILABLE"
            (tformat/unparse
             (tformat/formatters :rfc822)
-            (-> client :complaint first :complaint-date)))])
+            (-> client :complaint first :complaint-date))
+           )])
      (make-bs-control-group
       {}
       "Diagnosis"

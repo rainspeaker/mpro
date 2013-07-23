@@ -6,7 +6,9 @@
             [mpro.dbclient :as dbclient]
             [mpro.clients :as clt]
             [clojure.string :as string]
-            [mpro.comp :as comp])
+            [mpro.comp :as comp]
+            ;; moustache here!
+            )
   (:use [hiccup.core] [hiccup.def]
         [mpro.helper-macros])
   (:gen-class))
@@ -41,12 +43,17 @@
       (response/redirect "/help.html")
       (render-app)))
 
-(def app 
+(def app
   (-> handler
-    (resources/wrap-resource "public")))
+      (resources/wrap-resource "public")))
+
+(def mpr
+  (mch/app ["client"]))
 
 (defn -main [& args]
   (jetty/run-jetty app {:port 3001}))
 
 ;; (defonce server (jetty/run-jetty app {:port 3000 :join? false}))
+
+
 
