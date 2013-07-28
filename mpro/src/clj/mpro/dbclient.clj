@@ -2,8 +2,8 @@
   (:require [mpro.dbconfig :as d]
             [clojure.java.jdbc :as j]
             [clojure.java.jdbc.sql :as s]
-            [clojure.string :as str]
-            [clj-time.coerce :as time-coerce])
+            [clojure.string :as str])
+            [clj-time.coerce :as time-coerce]
   (:use [korma.core]
         [mpro.helpers]))
 
@@ -186,7 +186,8 @@
   (transform (fn [res]
                (-> res
                    (transfm-by-fn :active bool-enums-tran)
-                   (transfm-by-fn :billing-note-date time-coerce/from-sql-date)))))
+                   (transfm-by-fn :billing-note-date time-coerce/from-sql-date)
+                   ))))
 
 (defentity address
   (database d/db)
@@ -229,7 +230,8 @@
   (belongs-to client)
   (transform (fn [res]
                (-> res
-                   (transfm-by-fn :complaint-date time-coerce/from-sql-date)))))
+                   (transfm-by-fn :complaint-date time-coerce/from-sql-date)
+                   ))))
 
 (defentity what-brings
   (database d/db)
@@ -240,6 +242,7 @@
                     (transfm-by-fn
                      :date
                      time-coerce/from-sql-date))))))
+
 
 (defentity technology
   (database d/db)
@@ -298,7 +301,8 @@
                (-> res
                    (transfm-by-fn
                     :date
-                    time-coerce/from-sql-date)))))
+                    time-coerce/from-sql-date)
+                   ))))
 
 (defentity session-notes
   (database d/db)

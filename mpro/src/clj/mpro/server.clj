@@ -11,7 +11,6 @@
             [mpro.clients :as clt]
             [clojure.string :as string]
             [mpro.comp :as comp]
-            
             )
   (:use [hiccup.core] [hiccup.def]
         [mpro.helper-macros]
@@ -73,6 +72,5 @@
                               partial-client))
                         (clt/update-partial-client partial-client)))
                     (render-app-w-client-id id)))}))
-
 
 (ae/def-appengine-app mpro-app #'mpro)

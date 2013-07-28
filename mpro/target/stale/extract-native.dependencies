@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 ([:dependencies ([org.clojure/clojure "1.4.0"] [org.clojure/java.jdbc "0.3.0-alpha4"] [mysql/mysql-connector-java "5.1.6"] [appengine-magic/appengine-magic "0.5.1-SNAPSHOT"] [korma/korma "0.3.0-RC5"] [ring/ring "1.1.8"] [jayq/jayq "2.4.0"] [endophile/endophile "0.1.0"] [hiccup/hiccup "1.0.3"] [clj-time/clj-time "0.5.1"] [net.cgrand/moustache "1.1.0"] [shoreleave/shoreleave "0.3.0"] [shoreleave/shoreleave-remote-ring "0.3.0"] [org.clojure/tools.nrepl "0.2.3"] [clojure-complete/clojure-complete "0.2.3"])])
+=======
+([:dependencies ([org.clojure/clojure "1.4.0"] [org.clojure/java.jdbc "0.3.0-alpha4"] [mysql/mysql-connector-java "5.1.6"] [korma/korma "0.3.0-RC5"] [ring/ring "1.1.8"] [jayq/jayq "2.4.0"] [endophile/endophile "0.1.0"] [hiccup/hiccup "1.0.3"] [org.clojure/tools.nrepl "0.2.1" :exclusions ([org.clojure/clojure])] [clojure-complete/clojure-complete "0.2.2" :exclusions ([org.clojure/clojure])])])
+>>>>>>> 3dce2fa9053c413d314e495a6b2627043bdf026b

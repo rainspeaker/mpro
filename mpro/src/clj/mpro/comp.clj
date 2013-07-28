@@ -160,8 +160,6 @@
               attribs
               (dissoc attribs :value))]))
 
-
-
 (defn make-generic-inputs [params]
   :input params)
 
@@ -239,6 +237,7 @@
             (-> client :name :post-fix) "e.g. Jr, IV, etc." "span2"]]))])]]]))
 
 (defn cprofile-health [client]
+
   [:div
    [:legend "Complaints and Diagnoses"]
    [:div {:class "row-fluid complaints-diagnoses"}
@@ -310,6 +309,7 @@
        {}
        [(str "Last modified on "
              (fdate (-> client :history :last-modified)))])]])])
+
 
 (defn cprofile-perpetual-professional [client]
   [:div {:class "perpetual-professional-notes"}

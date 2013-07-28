@@ -309,6 +309,7 @@
 ;;Inserting / Updating Clients
 ;;******************************************************************************
 
+<<<<<<< HEAD
 
 
 (def property-positions-translator
@@ -597,3 +598,6 @@
       (update c/complaint-diagnosis
               (set-fields cd)
               (where {:client_id (partial-client :id) :id cd-id})))))
+=======
+()
+>>>>>>> 3dce2fa9053c413d314e495a6b2627043bdf026b
