@@ -18,9 +18,10 @@
          billing-info
          billing-notes
          technology
+         complaint-diagnosis
          complaint
-         family-history
-         health-notes
+         history
+         diagnosis
          perpetual-personal-notes
          perpetual-professional-notes
          session-notes
@@ -67,9 +68,10 @@
   (has-many billing-info)
   (has-many billing-notes)
   (many-to-many technology :client_technology)
+  (has-many complaint-diagnosis)
   (has-many complaint)
-  (has-many family-history)
-  (has-many health-notes)
+  (has-many history)
+  (has-many diagnosis)
   (has-many perpetual-personal-notes)
   (has-many perpetual-professional-notes)
   (has-many session-notes)
@@ -109,13 +111,7 @@
                  :honorific
                  :post-fix
                  :preferred)
-  (belongs-to client)
-  (prepare (fn [qry]
-             (reduce #(prepr-by-fn %1 %2 str/trim)
-                     qry
-                     [:first :middle
-                      :last :honorific
-                      :post-fix :preferred]))))
+  (belongs-to client))
 
 (def demographic-enums-prep
   {:gender {:male "male"
@@ -128,6 +124,7 @@
                :teenager "teenager"
                :adult "adult"
                :senior "senior"}})
+
 (def demographic-enums-tran
   {:gender (revmap-shallow (demographic-enums-prep :gender))
    :sex (revmap-shallow (demographic-enums-prep :sex))
@@ -169,7 +166,8 @@
                      (demographic-enums-tran :age-group))
                     (transfm-by-fn
                      :birthdate
-                     time-coerce/from-sql-date))
+                     time-coerce/from-sql-date)
+                    )
                    ))))
 
 (defentity billing-info
@@ -210,6 +208,21 @@
   (entity-fields :country-code :main-number :extension :notes)
   (belongs-to client))
 
+(defentity complaint-diagnosis
+  (database d/db)
+  (entity-fields :complaint
+                 :diagnosis
+                 :complaint-last-modified
+                 :diagnosis-last-modified
+                 :id)
+  (belongs-to client)
+  (transform (fn [res]
+               (-> res
+                   (transfm-by-fn :complaint-last-modified
+                                  time-coerce/from-sql-date)
+                   (transfm-by-fn :diagnosis-last-modified
+                                  time-coerce/from-sql-date)))))
+
 (defentity complaint
   (database d/db)
   (entity-fields :date :complaint :complaint-date)
@@ -226,8 +239,7 @@
                (do (-> res
                     (transfm-by-fn
                      :date
-                     time-coerce/from-sql-date))
-                   ))))
+                     time-coerce/from-sql-date))))))
 
 (defentity technology
   (database d/db)
@@ -235,27 +247,47 @@
   (transform identity)
   (many-to-many client :client_technology))
 
-(defentity family-history
+(defentity history
   (database d/db)
   (entity-fields :history)
-  (belongs-to client))
-
-(defentity health-notes
-  (database d/db)
-  (entity-fields :health-notes)
   (belongs-to client)
   (transform (fn [res]
-               res)))
+               (do (-> res
+                    (transfm-by-fn
+                     :last-modified
+                     time-coerce/from-sql-date))))))
+
+(defentity diagnosis
+  (database d/db)
+  (entity-fields :diagnosis)
+  (belongs-to client)
+  (transform (fn [res]
+               (do (-> res
+                    (transfm-by-fn
+                     :last-modified
+                     time-coerce/from-sql-date)
+                    )
+                   ))))
 
 (defentity perpetual-personal-notes
   (database d/db)
   (entity-fields :perpetual-personal-notes)
-  (belongs-to client))
+  (belongs-to client)
+  (transform (fn [res]
+               (do (-> res
+                    (transfm-by-fn
+                     :last-modified
+                     time-coerce/from-sql-date))))))
 
 (defentity perpetual-professional-notes
   (database d/db)
   (entity-fields :perpetual-professional-notes)
-  (belongs-to client))
+  (belongs-to client)
+  (transform (fn [res]
+               (-> res
+                   (transfm-by-fn
+                    :last-modified
+                    time-coerce/from-sql-date)))))
 
 (defentity session
   (database d/db)

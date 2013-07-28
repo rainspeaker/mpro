@@ -8,5 +8,12 @@
 ;;   $("#btn").click(function() { alert("Hi!"); });
 ;; 
 
-(qm/ready (q/bind ($ "#clickable") :click (fn [] (js/alert "Hi!"))))
 
+
+;; (qm/ready
+;;  (q/bind ($ ".cprofile-form") :submit
+;;          (fn [e]
+;;            (this-as this
+;;                     (do (js/alert (q/attr ($ this) :action))
+;;                         (.preventDefault e))))))
+  
